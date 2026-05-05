@@ -1,0 +1,71 @@
+@import url('https://rsms.me/inter/inter.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Light Mode Scrollbars (Default) */
+.scroll-container::-webkit-scrollbar-track {
+  background: #f7fafc; /* gray-50 */
+}
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0; /* gray-400 */
+  border-radius: 4px;
+}
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0; /* gray-500 */
+}
+
+/* Dark Mode Scrollbars - Applied when inside dark containers */
+.bg-gray-900 .scroll-container::-webkit-scrollbar-track,
+.bg-gray-800 .scroll-container::-webkit-scrollbar-track {
+  background: #2d3748; /* gray-800 */
+}
+.bg-gray-900 .scroll-container::-webkit-scrollbar-thumb,
+.bg-gray-800 .scroll-container::-webkit-scrollbar-thumb {
+  background: #4a5568; /* gray-600 */
+}
+.bg-gray-900 .scroll-container::-webkit-scrollbar-thumb:hover,
+.bg-gray-800 .scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #718096; /* gray-500 */
+}
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 220px;
+  background-color: #1a202c; /* gray-900 */
+  color: #fff;
+  text-align: left;
+  border-radius: 6px;
+  padding: 8px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -110px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Removed forced dark background for syntax highlighting to allow theme-based styling */
+pre code {
+  background: transparent !important;
+}

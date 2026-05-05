@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build cache
+__pycache__/
+*.pyc
+
+# Downloaded files (user data)
+downloads/
+
+# User data files
+data/
+
+# Log files
+*.log
+security_events.log
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+
+# User access file (contains hashed passwords and schema data - never commit)
+user_access.json

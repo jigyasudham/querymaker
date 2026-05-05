@@ -1,0 +1,37 @@
+{
+  "users": [
+    {
+      "email": "admin@example.com",
+      "name": "Admin User",
+      "role": "admin",
+      "passwordHash": "generate-using-admin-dashboard-or-browser-console",
+      "allowedSchemas": ["*"],
+      "portals": [
+        {
+          "id": "portal1",
+          "name": "My Data Portal",
+          "url": "http://your-portal-url/login",
+          "automationType": "type1"
+        }
+      ]
+    },
+    {
+      "email": "user@example.com",
+      "name": "Regular User",
+      "role": "user",
+      "passwordHash": "generate-using-admin-dashboard-or-browser-console",
+      "allowedSchemas": ["sales", "hr"],
+      "portals": []
+    }
+  ],
+  "schemaData": {
+    "sales": {
+      "orders": ["id", "customer_id", "amount", "created_date", "status"],
+      "customers": ["id", "name", "email", "region", "signup_date"]
+    },
+    "hr": {
+      "employees": ["id", "name", "department", "salary", "hire_date"],
+      "departments": ["id", "name", "manager_id", "budget"]
+    }
+  }
+}
