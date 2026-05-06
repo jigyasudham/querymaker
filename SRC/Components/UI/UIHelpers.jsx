@@ -1,10 +1,63 @@
-import React, { memo } from 'react';  // NEW: Import memo for optimization
+import React, { memo, useState, useEffect, useRef } from 'react';
 import { InfoIcon, ChevronDownIcon } from './Icons.jsx';
-import { useState } from 'react';
-import { useEffect,useRef } from 'react';
 
+// --- Glassmorphism Primitives ---
 
-// MEMOIZED: Prevent unnecessary re-renders
+export const GlassCard = ({ children, className = '', theme = 'dark' }) => (
+    <div className={`backdrop-blur-xl border transition-all duration-300 ${
+        theme === 'dark' 
+            ? 'bg-slate-900/40 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]' 
+            : 'bg-white/40 border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]'
+    } rounded-2xl ${className}`}>
+        {children}
+    </div>
+);
+
+export const GlassButton = ({ children, onClick, className = '', theme = 'dark', variant = 'primary' }) => {
+    const variants = {
+        primary: theme === 'dark' 
+            ? 'bg-blue-600/80 hover:bg-blue-500 text-white border-white/10' 
+            : 'bg-blue-500/80 hover:bg-blue-600 text-white border-white/20',
+        secondary: theme === 'dark'
+            ? 'bg-white/5 hover:bg-white/10 text-slate-300 border-white/10'
+            : 'bg-black/5 hover:bg-black/10 text-slate-700 border-black/10',
+        danger: 'bg-red-500/80 hover:bg-red-600 text-white border-white/10',
+        success: 'bg-green-600/80 hover:bg-green-500 text-white border-white/10'
+    };
+
+    return (
+        <button 
+            onClick={onClick}
+            className={`px-4 py-2 rounded-xl border backdrop-blur-md transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 font-medium ${variants[variant]} ${className}`}
+        >
+            {children}
+        </button>
+    );
+};
+
+export const GlassInput = ({ value, onChange, placeholder, type = 'text', className = '', theme = 'dark', icon: Icon }) => (
+    <div className="relative group">
+        {Icon && (
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                <Icon className="w-4 h-4" />
+            </div>
+        )}
+        <input
+            type={type}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            className={`w-full py-2 ${Icon ? 'pl-10' : 'px-4'} pr-4 rounded-xl border backdrop-blur-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+                theme === 'dark'
+                    ? 'bg-slate-900/50 border-white/10 text-white placeholder-slate-500'
+                    : 'bg-white/50 border-black/10 text-slate-900 placeholder-slate-400'
+            } ${className}`}
+        />
+    </div>
+);
+
+// --- Refactored Existing Components ---
+
 export const CollapsibleSection = memo(({ title, count, children, highlight, theme = 'dark' }) => {
     const [isOpen, setIsOpen] = useState(!!highlight);
 
@@ -15,21 +68,28 @@ export const CollapsibleSection = memo(({ title, count, children, highlight, the
     }, [highlight]);
 
     return (
-        <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-blue-300'}`}>
-            <button onClick={() => setIsOpen(!isOpen)} className={`w-full flex justify-between items-center p-3 text-left ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-blue-50'} focus:outline-none transition`}>
-                <span className={`font-semibold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+        <div className={`border-b last:border-0 ${theme === 'dark' ? 'border-white/5' : 'border-black/5'}`}>
+            <button 
+                onClick={() => setIsOpen(!isOpen)} 
+                className={`w-full flex justify-between items-center p-4 text-left hover:bg-white/5 transition-all duration-200 focus:outline-none`}
+            >
+                <span className={`font-semibold flex items-center gap-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
                     <Highlight text={title} highlight={highlight}/> 
-                    <span className={`text-xs font-normal ${theme === 'dark' ? 'text-gray-400' : 'text-blue-600'}`}>({count})</span>
+                    <span className={`text-xs font-normal opacity-60`}>({count})</span>
                 </span>
-                <span className={`transform transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'} ${theme === 'dark' ? 'text-gray-400' : 'text-blue-500'}`}><ChevronDownIcon /></span>
+                <span className={`transform transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'} opacity-60`}><ChevronDownIcon /></span>
             </button>
-            {isOpen && <div className={`p-3 ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-100'}`}>{children}</div>}
+            {isOpen && (
+                <div className={`p-4 pt-0 transition-all duration-300`}>
+                    {children}
+                </div>
+            )}
         </div>
     );
 });
 
 export const InfoTooltip = ({ text }) => (
-    <div className="tooltip inline-flex items-center justify-center ml-2">
+    <div className="tooltip inline-flex items-center justify-center ml-2 opacity-60 hover:opacity-100 transition-opacity">
         <InfoIcon />
         <span className="tooltiptext">{text}</span>
     </div>
@@ -43,7 +103,11 @@ export const CodeBlock = ({ code, theme = 'dark' }) => {
         }
     }, [code]);
     return (
-        <pre className={`rounded-lg text-sm flex-grow overflow-y-auto scroll-container p-3 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-gray-100 text-gray-800 border border-gray-300'}`}>
+        <pre className={`rounded-xl text-sm flex-grow overflow-y-auto scroll-container p-4 border backdrop-blur-md ${
+            theme === 'dark' 
+                ? 'bg-slate-900/60 text-blue-100 border-white/10' 
+                : 'bg-slate-50/60 text-slate-800 border-black/5'
+        }`}>
             <code ref={codeRef} className="font-mono">
                 {code}
             </code>
@@ -54,7 +118,7 @@ export const CodeBlock = ({ code, theme = 'dark' }) => {
 export const Highlight = ({ text, highlight }) => {
     if (!highlight) return <span>{text}</span>;
     const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
-    return <span>{parts.map((part, i) => part.toLowerCase() === highlight.toLowerCase() ? <span key={i} className="bg-blue-200 text-blue-900">{part}</span> : part)}</span>;
+    return <span>{parts.map((part, i) => part.toLowerCase() === highlight.toLowerCase() ? <span key={i} className="bg-blue-500/30 text-blue-400 rounded px-0.5">{part}</span> : part)}</span>;
 };
 
 export function SearchableDropdown({ options, value, onChange, placeholder, theme = 'dark' }) {
@@ -62,14 +126,12 @@ export function SearchableDropdown({ options, value, onChange, placeholder, them
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsOpen(false);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
@@ -86,68 +148,65 @@ export function SearchableDropdown({ options, value, onChange, placeholder, them
 
     return (
         <div className="relative" ref={dropdownRef}>
-            {/* Display Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700' : 'bg-white border-2 border-blue-300 hover:border-blue-400 shadow-sm'} text-left text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between transition`}
+                className={`w-full p-3 rounded-xl border backdrop-blur-md text-left text-sm flex items-center justify-between transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+                    theme === 'dark'
+                        ? 'bg-slate-900/50 border-white/10 text-white'
+                        : 'bg-white/50 border-black/10 text-slate-900 shadow-sm'
+                }`}
             >
-                <span className={value ? (theme === 'dark' ? 'text-white' : 'text-gray-900') : (theme === 'dark' ? 'text-gray-400' : 'text-gray-500')}>
+                <span className={value ? '' : 'opacity-50'}>
                     {value || placeholder}
                 </span>
-                <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>▼</span>
+                <span className="opacity-40 text-xs">▼</span>
             </button>
 
-            {/* Dropdown Panel */}
             {isOpen && (
-                <div className={`absolute z-50 w-full mt-1 ${theme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-blue-300 shadow-2xl'} border-2 rounded-lg`}>
-                    {/* Search Input */}
-                    <div className={`p-2 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
+                <div className={`absolute z-50 w-full mt-2 border backdrop-blur-2xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 ${
+                    theme === 'dark' 
+                        ? 'bg-slate-900/90 border-white/10' 
+                        : 'bg-white/90 border-black/10'
+                }`}>
+                    <div className={`p-2 border-b ${theme === 'dark' ? 'border-white/5' : 'border-black/5'}`}>
                         <input
                             type="text"
                             placeholder="Search..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-300'} text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            className={`w-full p-2 text-sm rounded-lg bg-transparent border-0 focus:outline-none focus:ring-0 ${
+                                theme === 'dark' ? 'text-white' : 'text-slate-900'
+                            }`}
                             autoFocus
                         />
                     </div>
 
-                    {/* Options List - INCREASED HEIGHT */}
-                    <div className="max-h-96 overflow-y-auto scroll-container">
+                    <div className="max-h-64 overflow-y-auto scroll-container">
                         {filtered.length > 0 ? (
                             filtered.map((option, index) => (
                                 <button
                                     key={index}
                                     onClick={() => handleSelect(option)}
-                                    className={`w-full text-left px-3 py-2.5 text-sm transition-colors ${
+                                    className={`w-full text-left px-4 py-3 text-sm transition-colors ${
                                         option === value 
-                                            ? 'bg-blue-700 text-white font-semibold' 
+                                            ? 'bg-blue-600 text-white' 
                                             : theme === 'dark'
-                                                ? 'text-gray-300 hover:bg-blue-600 hover:text-white'
-                                                : 'text-gray-800 hover:bg-blue-100 hover:text-blue-900 border-b border-blue-100 last:border-0'
+                                                ? 'text-slate-300 hover:bg-white/5'
+                                                : 'text-slate-700 hover:bg-black/5'
                                     }`}
                                 >
                                     {option}
                                 </button>
                             ))
                         ) : (
-                            <div className={`px-3 py-4 text-sm text-center ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>
+                            <div className="px-4 py-6 text-sm text-center opacity-50">
                                 No matches found
                             </div>
                         )}
                     </div>
-
-                    {/* Footer with count */}
-                    {filtered.length > 0 && (
-                        <div className={`px-3 py-2 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-900' : 'border-blue-300 bg-blue-100'} rounded-b-lg`}>
-                            <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {filtered.length} of {options.length} items
-                                {search && ` (filtered)`}
-                            </span>
-                        </div>
-                    )}
                 </div>
             )}
         </div>
     );
 }
+

@@ -82,17 +82,43 @@ export default function LoginPage({ onLogin, setInitialUserData, theme, setTheme
     }
 
     return (
-        <div className={`${theme === 'dark' 
-            ? 'bg-gray-800' 
-            : 'bg-gray-100'
-        } min-h-screen flex items-center justify-center p-4`}>
-            <div className={`flex w-full max-w-5xl rounded-xl p-6${theme === 'dark' 
-                ? 'bg-gray-900' 
-                : 'bg-white'
-            } rounded-2xl shadow-2xl overflow-hidden`}>
+        <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+            {/* Decorative Background Elements */}
+            <motion.div 
+                animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 90, 180, 270, 360],
+                    x: [0, 100, 0, -100, 0],
+                    y: [0, 50, 100, 50, 0]
+                }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/20 blur-[120px] pointer-events-none"
+            />
+            <motion.div 
+                animate={{ 
+                    scale: [1.2, 1, 1.2],
+                    rotate: [360, 270, 180, 90, 0],
+                    x: [0, -100, 0, 100, 0],
+                    y: [0, -50, -100, -50, 0]
+                }}
+                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/20 blur-[120px] pointer-events-none"
+            />
+
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`relative z-10 flex w-full max-w-5xl backdrop-blur-xl border ${
+                    theme === 'dark' 
+                        ? 'bg-slate-900/60 border-white/10' 
+                        : 'bg-white/60 border-white/20'
+                } rounded-3xl shadow-2xl overflow-hidden`}
+            >
                 
                 {/* LEFT ANIMATION */}
-                <div className={`hidden md:flex w-1/2 items-center justify-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
+                <div className={`hidden md:flex w-1/2 items-center justify-center ${
+                    theme === 'dark' ? 'bg-white/5' : 'bg-black/5'
+                } backdrop-blur-md`}>
                     <LoginIllustration 
                         theme={theme} 
                         typing={typing} 
@@ -107,27 +133,46 @@ export default function LoginPage({ onLogin, setInitialUserData, theme, setTheme
                 </div>
 
                 {/* RIGHT FORM */}
-                <div className="w-full md:w-1/2 p-8 space-y-6">
+                <div className="w-full md:w-1/2 p-8 lg:p-12 space-y-8">
                 
                 {/* Theme Toggle */}
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                        QuerryHub
+                    </h2>
                     <ThemeToggle theme={theme} setTheme={setTheme} />
                 </div>
 
-                <div className="text-center">
-                    <h1 className="text-3xl font-bold text-blue-400">Query Maker</h1>
-                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-800'} mt-2`}>Secure Login</p>
+                <div className="text-center space-y-2">
+                    <h1 className={`text-4xl font-extrabold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                        Welcome Back
+                    </h1>
+                    <p className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'} text-lg`}>
+                        Enter your credentials to access your workspace
+                    </p>
                 </div>
 
-                {error && <p className="bg-red-500 text-white p-3 rounded-lg text-center font-semibold">{error}</p>}
+                {error && (
+                    <motion.p 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-red-500/20 border border-red-500/50 text-red-200 p-4 rounded-xl text-center font-medium backdrop-blur-sm"
+                    >
+                        {error}
+                    </motion.p>
+                )}
                 
-                <div className="text-center">
-                    <label htmlFor="user-file-upload" className={`w-full font-bold py-3 px-4 rounded-lg inline-flex items-center justify-center cursor-pointer transition shadow-lg ${fileName 
-                        ? 'bg-green-600 hover:bg-green-700' 
-                        : 'bg-gray-600 hover:bg-gray-700'
-                    } text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <div className="space-y-4">
+                    <label 
+                        htmlFor="user-file-upload" 
+                        className={`w-full font-bold py-4 px-6 rounded-xl inline-flex items-center justify-center cursor-pointer transition-all duration-300 shadow-lg ${
+                            fileName 
+                                ? 'bg-emerald-500/80 hover:bg-emerald-500 text-white border border-emerald-400/30' 
+                                : 'bg-slate-700/50 hover:bg-slate-700 text-white border border-white/10'
+                        } backdrop-blur-md ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
                         <UploadIcon/>
-                        <span>{isLoading ? 'Loading...' : (fileName || '1. Load User Access File')}</span>
+                        <span className="ml-2">{isLoading ? 'Loading...' : (fileName || '1. Load User Access File')}</span>
                     </label>
                     <input 
                         id="user-file-upload" 
@@ -140,8 +185,10 @@ export default function LoginPage({ onLogin, setInitialUserData, theme, setTheme
                 </div>
 
                 <form className="space-y-6" onSubmit={handleLogin}>
-                    <div>
-                        <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Email Address</label>
+                    <div className="space-y-2">
+                        <label className={`text-sm font-semibold ml-1 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+                            Email Address
+                        </label>
                         <input 
                             type="email" 
                             value={email} 
@@ -156,62 +203,80 @@ export default function LoginPage({ onLogin, setInitialUserData, theme, setTheme
                                 setTyping(false);
                                 focusBoost.set(1);
                             }}
-                            className={`mt-1 w-full p-3 ${theme === 'dark' 
-                                ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
-                                : 'bg-gray-100 border-gray-400 text-gray-900 focus:border-blue-500'
-                            } border-2 rounded-lg focus:ring-blue-500 outline-none transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className={`w-full p-4 rounded-xl outline-none transition-all duration-300 border ${
+                                theme === 'dark' 
+                                    ? 'bg-slate-800/50 border-white/10 text-white focus:border-blue-500 focus:bg-slate-800' 
+                                    : 'bg-white/50 border-slate-200 text-slate-900 focus:border-blue-500 focus:bg-white'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            placeholder="name@company.com"
                         />
                     </div>
-                    <div>
-                        <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Password</label>
-                        <div className="relative mt-1">
-                        <input 
-                            type={showPassword ? "text" : "password"} 
-                            value={password} 
-                            onChange={(e) => setPassword(e.target.value)} 
-                            required 
-                            disabled={!userData || isLoading} 
-                            onFocus={() => {
-                                setTyping(true);
-                                setTypingPassword(true);
-                                focusBoost.set(1.05);
-                            }}
-                            onBlur={() => {
-                                setTyping(false);
-                                setTypingPassword(false);
-                                focusBoost.set(1);
-                            }}
-                            className={`w-full p-3 pr-10 ${theme === 'dark' 
-                                ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
-                                : 'bg-gray-100 border-gray-400 text-gray-900 focus:border-blue-500'
-                            } border-2 rounded-lg focus:ring-blue-500 outline-none transition disabled:opacity-50 disabled:cursor-not-allowed`}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(prev => !prev)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                        >
-                            {showPassword ? '🙈' : '👁'}
-                        </button>
+                    <div className="space-y-2">
+                        <label className={`text-sm font-semibold ml-1 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+                            Password
+                        </label>
+                        <div className="relative">
+                            <input 
+                                type={showPassword ? "text" : "password"} 
+                                value={password} 
+                                onChange={(e) => setPassword(e.target.value)} 
+                                required 
+                                disabled={!userData || isLoading} 
+                                onFocus={() => {
+                                    setTyping(true);
+                                    setTypingPassword(true);
+                                    focusBoost.set(1.05);
+                                }}
+                                onBlur={() => {
+                                    setTyping(false);
+                                    setTypingPassword(false);
+                                    focusBoost.set(1);
+                                }}
+                                className={`w-full p-4 pr-12 rounded-xl outline-none transition-all duration-300 border ${
+                                    theme === 'dark' 
+                                        ? 'bg-slate-800/50 border-white/10 text-white focus:border-blue-500 focus:bg-slate-800' 
+                                        : 'bg-white/50 border-slate-200 text-slate-900 focus:border-blue-500 focus:bg-white'
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                placeholder="••••••••"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(prev => !prev)}
+                                className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors ${
+                                    theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                            >
+                                {showPassword ? '🙈' : '👁'}
+                            </button>
                         </div>
                     </div>
                     <button 
                         type="submit" 
                         disabled={!userData || isLoading} 
-                        className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold transition shadow-lg disabled:bg-gray-1000 disabled:cursor-not-allowed flex justify-center items-center"
+                        className="w-full py-4 px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 disabled:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
                     >
                         {isLoading ? (
-                            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-3"></motion.div>
-                        ) : '2. Login'} 
+                            <motion.div 
+                                animate={{ rotate: 360 }} 
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }} 
+                                className="h-6 w-6 border-2 border-white border-t-transparent rounded-full"
+                            />
+                        ) : (
+                            <span className="text-lg">Access Workspace</span>
+                        )} 
                     </button>
                 </form>
 
-                <div className="text-center text-sm">
-                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-800'}`}>First time setup?</p>
-                    <button onClick={createInitialFile} className="text-blue-400 hover:underline">Create a New User File</button>
+                <div className="text-center space-y-4">
+                    <p className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'} text-sm`}>
+                        First time setup?{' '}
+                        <button onClick={createInitialFile} className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
+                            Create a New User File
+                        </button>
+                    </p>
                 </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

@@ -1,7 +1,7 @@
 // QueryBuilder.jsx - Extracted from SchemaPanel.jsx
 import React, { useState } from 'react';
 import { PlusCircleIcon, TrashIcon } from './UI/Icons.jsx';
-import { InfoTooltip, SearchableDropdown } from './UI/UIHelpers.jsx';
+import { InfoTooltip, SearchableDropdown, GlassCard, GlassButton, GlassInput } from './UI/UIHelpers.jsx';
 import { ALL_CLAUSES, ALL_FUNCTIONS } from '../Services/ClauseDefinitions.js';
 import ColumnSelector from './ColumnSelector.jsx';
 import FunctionBrowser from './FunctionBrowser';
@@ -65,37 +65,33 @@ export function CaseStatementBuilder({ caseData, onChange, theme }) {
     };
 
     return (
-        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100 border border-gray-400'} p-3 rounded-lg space-y-2`}>
-            <div className={`text-sm font-semibold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'} mb-2`}>
+        <GlassCard theme={theme} className="p-4 space-y-4">
+            <div className={`text-sm font-semibold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
                 CASE Statement Builder
             </div>
             
             {conditions.map((cond, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                    <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-800'} w-12`}>
-                        {index === 0 ? 'WHEN' : 'WHEN'}
-                    </span>
-                    <input
-                        type="text"
+                <div key={index} className="flex items-center space-x-3">
+                    <span className="text-xs font-bold opacity-60 w-12">WHEN</span>
+                    <GlassInput
+                        theme={theme}
                         value={cond.when}
                         onChange={e => updateCondition(index, 'when', e.target.value)}
                         placeholder="condition (e.g., amount > 100)"
-                        className={`flex-1 p-2 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg`}
+                        className="flex-1"
                     />
-                    <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-800'}`}>
-                        THEN
-                    </span>
-                    <input
-                        type="text"
+                    <span className="text-xs font-bold opacity-60">THEN</span>
+                    <GlassInput
+                        theme={theme}
                         value={cond.then}
                         onChange={e => updateCondition(index, 'then', e.target.value)}
                         placeholder="result (e.g., 'High')"
-                        className={`flex-1 p-2 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg`}
+                        className="flex-1"
                     />
                     {conditions.length > 1 && (
                         <button
                             onClick={() => removeCondition(index)}
-                            className="text-red-400 hover:text-red-300 text-sm"
+                            className="text-red-400 hover:text-red-300 transition-colors"
                             title="Remove condition"
                         >
                             ✕
@@ -106,56 +102,41 @@ export function CaseStatementBuilder({ caseData, onChange, theme }) {
             
             <button
                 onClick={addCondition}
-                className={`text-xs ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline`}
+                className={`text-xs ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline font-medium`}
             >
                 + Add WHEN condition
             </button>
             
-            <div className="flex items-center space-x-2 mt-2">
-                <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-800'} w-12`}>
-                    ELSE
-                </span>
-                <input
-                    type="text"
+            <div className="flex items-center space-x-3 mt-4">
+                <span className="text-xs font-bold opacity-60 w-12">ELSE</span>
+                <GlassInput
+                    theme={theme}
                     value={elseValue}
                     onChange={e => updateElse(e.target.value)}
                     placeholder="default value (optional)"
-                    className={`flex-1 p-2 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg`}
+                    className="flex-1"
                 />
             </div>
             
-            <div className={`text-xs mt-2 p-2 rounded ${theme === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-800'}`}>
-                <strong>Preview:</strong>
-                <pre className={`mt-1 whitespace-pre-wrap font-mono ${theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`}>
+            <div className={`text-xs p-3 rounded-xl border backdrop-blur-md ${theme === 'dark' ? 'bg-slate-900/60 border-white/5 text-slate-400' : 'bg-slate-50/60 border-black/5 text-slate-600'}`}>
+                <div className="font-bold mb-2">Preview:</div>
+                <pre className="whitespace-pre-wrap font-mono">
                     {generateCaseSQL(conditions, elseValue)}
                 </pre>
             </div>
-        </div>
+        </GlassCard>
     );
 }
 
-// Helper function to generate concatenation SQL
 export function generateConcatSQL(parts) {
     if (!parts || parts.length === 0) return '';
-    
     const formattedParts = parts.map(part => {
-        if (part.type === 'text') {
-            // Escape single quotes and wrap in quotes
-            return `'${part.value.replace(/'/g, "''")}'`;
-        } else if (part.type === 'column') {
-            // Column reference - keep as is
-            return part.value;
-        } else if (part.type === 'function') {
-            // Function call - keep as is
-            return part.value;
-        }
+        if (part.type === 'text') return `'${part.value.replace(/'/g, "''")}'`;
         return part.value;
     }).filter(Boolean);
-    
     return formattedParts.join(' || ');
 }
 
-// String Concatenation Builder Component
 export function StringConcatBuilder({ concatData, onChange, theme, availableColumns }) {
     const [parts, setParts] = useState(concatData.parts || [
         { id: Date.now(), type: 'column', value: '' }
@@ -163,12 +144,7 @@ export function StringConcatBuilder({ concatData, onChange, theme, availableColu
     const [alias, setAlias] = useState(concatData.alias || '');
 
     const addPart = (type) => {
-        const newPart = {
-            id: Date.now() + Math.random(),
-            type: type,
-            value: ''
-        };
-        const newParts = [...parts, newPart];
+        const newParts = [...parts, { id: Date.now() + Math.random(), type, value: '' }];
         setParts(newParts);
         updateParent(newParts, alias);
     };
@@ -180,9 +156,7 @@ export function StringConcatBuilder({ concatData, onChange, theme, availableColu
     };
 
     const updatePart = (id, field, value) => {
-        const newParts = parts.map(p => 
-            p.id === id ? { ...p, [field]: value } : p
-        );
+        const newParts = parts.map(p => p.id === id ? { ...p, [field]: value } : p);
         setParts(newParts);
         updateParent(newParts, alias);
     };
@@ -193,137 +167,73 @@ export function StringConcatBuilder({ concatData, onChange, theme, availableColu
     };
 
     const updateParent = (newParts, newAlias) => {
-        onChange({
-            parts: newParts,
-            alias: newAlias
-        });
-    };
-
-    const getPartIcon = (type) => {
-        switch(type) {
-            case 'column': return '📊';
-            case 'text': return '📝';
-            case 'function': return '⚙️';
-            default: return '•';
-        }
-    };
-
-    const getPartPlaceholder = (type) => {
-        switch(type) {
-            case 'column': return 't1.column_name';
-            case 'text': return 'Enter text...';
-            case 'function': return 'CAST(column AS VARCHAR)';
-            default: return '';
-        }
+        onChange({ parts: newParts, alias: newAlias });
     };
 
     return (
-        <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100 border border-gray-400'} p-3 rounded-lg space-y-3`}>
+        <GlassCard theme={theme} className="p-4 space-y-4">
             <div className="flex justify-between items-center">
                 <div className={`text-sm font-semibold ${theme === 'dark' ? 'text-green-300' : 'text-green-600'}`}>
                     🔗 String Concatenation Builder
                 </div>
                 <div className="flex gap-2">
-                    <button
-                        onClick={() => addPart('column')}
-                        className={`text-xs ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white px-2 py-1 rounded`}
-                        title="Add Column"
-                    >
-                        📊 Column
-                    </button>
-                    <button
-                        onClick={() => addPart('text')}
-                        className={`text-xs ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-500 hover:bg-purple-600'} text-white px-2 py-1 rounded`}
-                        title="Add Text"
-                    >
-                        📝 Text
-                    </button>
-                    <button
-                        onClick={() => addPart('function')}
-                        className={`text-xs ${theme === 'dark' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-orange-500 hover:bg-orange-600'} text-white px-2 py-1 rounded`}
-                        title="Add Function"
-                    >
-                        ⚙️ Function
-                    </button>
+                    <GlassButton theme={theme} onClick={() => addPart('column')} className="text-xs px-3 py-1.5">📊 Column</GlassButton>
+                    <GlassButton theme={theme} onClick={() => addPart('text')} className="text-xs px-3 py-1.5">📝 Text</GlassButton>
+                    <GlassButton theme={theme} onClick={() => addPart('function')} className="text-xs px-3 py-1.5">⚙️ Function</GlassButton>
                 </div>
             </div>
             
             {parts.map((part, index) => (
-                <div key={part.id} className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            <span className="text-lg">{getPartIcon(part.type)}</span>
-                            <select
-                                value={part.type}
-                                onChange={(e) => updatePart(part.id, 'type', e.target.value)}
-                                className={`p-2 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-xs rounded-lg`}
-                            >
-                                <option value="column">Column</option>
-                                <option value="text">Text</option>
-                                <option value="function">Function</option>
-                            </select>
-                        </div>
+                <div key={part.id} className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                        <select
+                            value={part.type}
+                            onChange={(e) => updatePart(part.id, 'type', e.target.value)}
+                            className={`p-2 rounded-xl border backdrop-blur-md text-xs focus:outline-none ${
+                                theme === 'dark' ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-black/10 text-slate-900'
+                            }`}
+                        >
+                            <option value="column">Column</option>
+                            <option value="text">Text</option>
+                            <option value="function">Function</option>
+                        </select>
                         
-                        <input
-                            type="text"
+                        <GlassInput
+                            theme={theme}
                             value={part.value}
                             onChange={(e) => updatePart(part.id, 'value', e.target.value)}
-                            placeholder={getPartPlaceholder(part.type)}
-                            className={`flex-1 p-2 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg font-mono`}
+                            placeholder="Enter column or text..."
+                            className="flex-1 font-mono"
                         />
                         
                         {parts.length > 1 && (
-                            <button
-                                onClick={() => removePart(part.id)}
-                                className="text-red-400 hover:text-red-300 text-sm flex-shrink-0"
-                                title="Remove part"
-                            >
-                                ✕
-                            </button>
+                            <button onClick={() => removePart(part.id)} className="text-red-400 hover:text-red-300 transition-colors">✕</button>
                         )}
                     </div>
-                    
                     {index < parts.length - 1 && (
-                        <div className="flex items-center justify-center">
-                            <div className={`text-xs font-bold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} bg-gray-800 px-3 py-1 rounded`}>
-                                ||
-                            </div>
+                        <div className="flex justify-center">
+                            <span className="text-xs font-bold text-green-500 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">||</span>
                         </div>
                     )}
                 </div>
             ))}
             
-            {/* Alias Input Field */}
-            <div className={`flex items-center gap-2 mt-2 p-2 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} rounded`}>
-                <label className={`text-xs font-semibold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-800'} whitespace-nowrap`}>
-                    Column Alias:
-                </label>
-                <input
-                    type="text"
+            <div className="flex items-center gap-3 mt-4">
+                <label className="text-xs font-bold opacity-60 whitespace-nowrap">Alias:</label>
+                <GlassInput
+                    theme={theme}
                     value={alias}
                     onChange={(e) => updateAlias(e.target.value)}
-                    placeholder="e.g., full_name, custom_id (optional)"
-                    className={`flex-1 p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg`}
+                    placeholder="e.g., full_name"
+                    className="flex-1"
                 />
             </div>
             
-            <div className={`text-xs mt-3 p-2 rounded ${theme === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-800'}`}>
-                <strong>Preview:</strong>
-                <pre className={`mt-1 whitespace-pre-wrap font-mono ${theme === 'dark' ? 'text-green-400' : 'text-green-700'}`}>
-                    {generateConcatSQL(parts) || '(empty)'}
-                    {alias && ` AS ${alias}`}
-                </pre>
+            <div className={`text-xs p-3 rounded-xl border backdrop-blur-md ${theme === 'dark' ? 'bg-slate-900/60 border-white/5 text-green-400/80' : 'bg-slate-50/60 border-black/5 text-green-700'}`}>
+                <div className="font-bold mb-2">Preview:</div>
+                <pre className="font-mono">{generateConcatSQL(parts) || '(empty)'}{alias && ` AS ${alias}`}</pre>
             </div>
-            
-            <div className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-800'} mt-2`}>
-                <strong>💡 Tips:</strong>
-                <ul className="list-disc ml-4 mt-1 space-y-1">
-                    <li><strong>Column:</strong> Use table alias (e.g., t1.column_name)</li>
-                    <li><strong>Text:</strong> Enter plain text (quotes added automatically)</li>
-                    <li><strong>Function:</strong> Enter complete function (e.g., SUBSTR(t1.col, 1, 3))</li>
-                </ul>
-            </div>
-        </div>
+        </GlassCard>
     );
 }
 
@@ -344,6 +254,7 @@ const QueryBuilder = ({
   setColumnSearch,
   theme,
   userData,
+  user,
   addSpecificClause,
   handleAddColumn,
   handleRemoveColumn,
@@ -356,81 +267,72 @@ const QueryBuilder = ({
     alias: ''
   });
 
-  // Handler for adding concatenation to functions
+  const userLevel = user?.isAdmin || userData?.isAdmin ? 'Advanced' : (user?.permissions?.level || userData?.permissions?.level || 'Beginner');
+
   const handleAddConcatenation = () => {
-    // Reset state when opening
-    setConcatBuilderData({
-      parts: [{ id: Date.now(), type: 'column', value: '' }],
-      alias: ''
-    });
+    setConcatBuilderData({ parts: [{ id: Date.now(), type: 'column', value: '' }], alias: '' });
     setShowConcatBuilder(true);
   };
 
-  // Handler to actually add concatenation to query
   const handleSaveConcatenation = () => {
-    // Create new function with current concat data
     const newFunc = {
       id: Date.now(),
       func: 'CONCAT',
       args: [],
       alias: concatBuilderData.alias,
-      concatStatement: {
-        parts: concatBuilderData.parts
-      }
+      concatStatement: { parts: concatBuilderData.parts }
     };
-    
-    // Call addSpecificClause to add to query
     addSpecificClause('functions', newFunc);
-    
-    // Close builder
     setShowConcatBuilder(false);
   };
 
   return (
-    <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white border border-gray-400'} rounded-lg p-4 shadow-sm flex flex-col space-y-4 scroll-container overflow-y-auto`}>
-      <div>
-        <label className="text-sm font-semibold mb-2 block">1. Select Schema</label>
-        <SearchableDropdown
-          options={visibleData ? Object.keys(visibleData).filter(Boolean) : []}
-          value={query.schema}
-          onChange={val => handleQueryChange('schema', val)}
-          placeholder="-- Select a Schema --"
-        />
-      </div>
-
-      {query.schema && (
+    <GlassCard theme={theme} className="p-6 flex flex-col space-y-6 overflow-y-auto scroll-container">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="text-sm font-semibold mb-2 block">2. Select Table</label>
+          <label className="text-xs font-bold opacity-60 mb-2 block uppercase tracking-wider">1. Select Schema</label>
           <SearchableDropdown
-            options={query.schema && visibleData[query.schema] ? Object.keys(visibleData[query.schema]).filter(Boolean) : []}
-            value={query.table}
-            onChange={val => handleQueryChange('table', val)}
-            placeholder="-- Select a Table --"
+            options={visibleData ? Object.keys(visibleData).filter(Boolean) : []}
+            value={query.schema}
+            onChange={val => handleQueryChange('schema', val)}
+            placeholder="-- Select a Schema --"
+            theme={theme}
           />
         </div>
-      )}
+
+        {query.schema && (
+          <div>
+            <label className="text-xs font-bold opacity-60 mb-2 block uppercase tracking-wider">2. Select Table</label>
+            <SearchableDropdown
+              options={query.schema && visibleData[query.schema] ? Object.keys(visibleData[query.schema]).filter(Boolean) : []}
+              value={query.table}
+              onChange={val => handleQueryChange('table', val)}
+              placeholder="-- Select a Table --"
+              theme={theme}
+            />
+          </div>
+        )}
+      </div>
 
       {query.table && (
         <>
-          <div className="flex-grow flex flex-col min-h-0">
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-semibold">3. Select Columns</label>
-              <button 
-                onClick={() => setShowFunctionBrowser(true)}
-                className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded flex items-center gap-1"
-              >
+          <div className="flex-grow flex flex-col space-y-4">
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-bold opacity-60 uppercase tracking-wider">3. Select Columns</label>
+              <GlassButton theme={theme} onClick={() => setShowFunctionBrowser(true)} className="text-xs py-1 px-3">
                 <span>⚙️</span> Browse Functions
-              </button>
+              </GlassButton>
             </div>
+            
             {availableClauses.find(c => c.name === 'DISTINCT') && (
-              <label className={`flex items-center space-x-2 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} my-2`}>
+              <label className="flex items-center space-x-3 text-sm cursor-pointer group">
                 <input
                   type="checkbox"
                   checked={query.distinct}
                   onChange={(e) => handleQueryChange('distinct', e.target.checked)}
-                  className={`h-4 w-4 ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'} rounded text-blue-500 focus:ring-blue-500`}
+                  className="w-4 h-4 rounded border-white/10 bg-white/5 text-blue-500 focus:ring-blue-500/50 transition-all"
                 />
-                <span>DISTINCT</span>
+                <span className="opacity-80 group-hover:opacity-100 transition-opacity">DISTINCT</span>
               </label>
             )}
             
@@ -453,412 +355,141 @@ const QueryBuilder = ({
               handleColumnAliasChange={handleColumnAliasChange}
               theme={theme}
             />
-            
-            {(query.joins || []).map(j => j.targetTable && (
-              <ColumnSelector
-                key={j.id}
-                tableAlias={j.alias}
-                tableName={j.targetTable}
-                schemaName={j.targetSchema}
-                visibleData={visibleData}
-                query={query}
-                columnSearch={columnSearch}
-                setColumnSearch={setColumnSearch}
-                handleColumnToggle={handleColumnToggle}
-                toggleSelectAllColumns={toggleSelectAllColumns}
-                handleColumnAliasChange={handleColumnAliasChange}
-                theme={theme}
-              />
-            ))}
           </div>
 
-          <div className={`border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-400'} pt-4`}>
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-semibold flex items-center">
+          <div className="border-t border-white/5 pt-6 space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xs font-bold opacity-60 uppercase tracking-wider flex items-center gap-2">
                 4. Add Query Clauses
-                <InfoTooltip text="Select a clause from the dropdown and click Add. Each clause has specific options to build your query." />
+                <InfoTooltip text="Select a clause from the dropdown and click Add." />
               </h3>
               
-              {/* STRING CONCATENATION BUTTON - Prominent placement */}
-              <button 
-                onClick={handleAddConcatenation}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg inline-flex items-center text-sm shadow-lg"
-                title="Build string concatenation using || operator"
-              >
-                <span className="mr-1">🔗</span>
-                <span className="hidden md:inline">Concatenate Strings</span>
-                <span className="md:hidden">Concat</span>
-              </button>
+              <GlassButton theme={theme} onClick={handleAddConcatenation} variant="success" className="text-xs py-1.5 px-4 shadow-lg shadow-green-500/10">
+                <span>🔗</span> Concatenate Strings
+              </GlassButton>
             </div>
             
-            {/* Concatenation Builder Panel */}
             {showConcatBuilder && (
-              <div className="mb-3">
+              <div className="animate-in slide-in-from-top-2 duration-300">
                 <StringConcatBuilder
                   theme={theme}
                   concatData={concatBuilderData}
-                  onChange={(newData) => setConcatBuilderData(newData)}
+                  onChange={setConcatBuilderData}
                   availableColumns={visibleData[query.schema]?.[query.table] || []}
                 />
-                <div className="flex justify-end gap-2 mt-2">
-                  <button
-                    onClick={() => setShowConcatBuilder(false)}
-                    className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveConcatenation}
-                    className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
-                  >
-                    Add to Query
-                  </button>
+                <div className="flex justify-end gap-3 mt-4">
+                  <GlassButton theme={theme} onClick={() => setShowConcatBuilder(false)} variant="secondary" className="text-xs">Cancel</GlassButton>
+                  <GlassButton theme={theme} onClick={handleSaveConcatenation} variant="success" className="text-xs">Add to Query</GlassButton>
                 </div>
               </div>
             )}
             
-            <div className="flex space-x-2">
-              <select 
-                value={clauseToAdd} 
-                onChange={e => setClauseToAdd(e.target.value)} 
-                className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
-              >
-                {availableClauses.map(c => <option key={c.name}>{c.name}</option>)}
-              </select>
-              <button 
-                onClick={addClause} 
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg inline-flex items-center text-sm"
-              >
-                <PlusCircleIcon className="mr-0 md:mr-2"/>
-                <span className="hidden md:inline">Add</span>
-              </button>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <SearchableDropdown
+                    options={availableClauses.map(c => c.name)}
+                    value={clauseToAdd}
+                    onChange={setClauseToAdd}
+                    placeholder="Select Clause"
+                    theme={theme}
+                />
+              </div>
+              <GlassButton theme={theme} onClick={addClause} className="px-6">
+                <PlusCircleIcon className="w-4 h-4" /> Add
+              </GlassButton>
             </div>
             
-            <div className="space-y-3 mt-3">
-              {/* JOIN clauses */}
+            <div className="space-y-4">
               {(query.joins || []).map(j => (
-                <div key={j.id} className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100 border border-gray-400'} p-2 rounded-lg space-y-2`}>
+                <GlassCard key={j.id} theme={theme} className="p-4 space-y-4 border-blue-500/20">
                   <div className="flex justify-between items-center">
-                    <span className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'} flex items-center`}>
-                      JOIN <InfoTooltip text="Join another table to combine data from multiple tables" />
+                    <span className="text-xs font-bold text-blue-400 flex items-center gap-2 uppercase tracking-widest">
+                      JOIN <InfoTooltip text="Join another table" />
                     </span>
-                    <button 
-                      onClick={() => removeClause('joins', j.id)} 
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <TrashIcon/>
-                    </button>
+                    <button onClick={() => removeClause('joins', j.id)} className="text-red-400 hover:text-red-300 transition-colors"><TrashIcon/></button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-4">
                     <select 
                       value={j.type} 
                       onChange={e => handleClauseChange('joins', j.id, 'type', e.target.value)} 
-                      className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
+                      className={`w-full p-2.5 rounded-xl border backdrop-blur-md text-sm focus:outline-none ${
+                        theme === 'dark' ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-black/10 text-slate-900'
+                      }`}
                     >
-                      <option>INNER JOIN</option>
-                      <option>LEFT JOIN</option>
-                      <option>RIGHT JOIN</option>
-                      <option>FULL JOIN</option>
+                      <option>INNER JOIN</option><option>LEFT JOIN</option><option>RIGHT JOIN</option><option>FULL JOIN</option>
                     </select>
-                    <SearchableDropdown
-                      options={visibleData ? Object.keys(visibleData).filter(Boolean) : []}
-                      value={j.targetSchema}
-                      onChange={val => handleClauseChange('joins', j.id, 'targetSchema', val)}
-                      placeholder="Target Schema"
-                    />
+                    <SearchableDropdown options={visibleData ? Object.keys(visibleData).filter(Boolean) : []} value={j.targetSchema} onChange={val => handleClauseChange('joins', j.id, 'targetSchema', val)} placeholder="Target Schema" theme={theme} />
                   </div>
                   {j.targetSchema && (
-                    <>
-                      <SearchableDropdown
-                        options={j.targetSchema && visibleData[j.targetSchema] ? Object.keys(visibleData[j.targetSchema]).filter(Boolean) : []}
-                        value={j.targetTable}
-                        onChange={val => handleClauseChange('joins', j.id, 'targetTable', val)}
-                        placeholder="Target Table"
-                      />
-                      {j.targetTable && (
-                        <div className="grid grid-cols-2 gap-2">
-                          <SearchableDropdown
-                            options={query.schema && query.table && visibleData[query.schema]?.[query.table] ? visibleData[query.schema][query.table].filter(Boolean) : []}
-                            value={j.onLeft}
-                            onChange={val => handleClauseChange('joins', j.id, 'onLeft', val)}
-                            placeholder="Left Column (t1)"
-                          />
-                          <SearchableDropdown
-                            options={j.targetSchema && j.targetTable && visibleData[j.targetSchema]?.[j.targetTable] ? visibleData[j.targetSchema][j.targetTable].filter(Boolean) : []}
-                            value={j.onRight}
-                            onChange={val => handleClauseChange('joins', j.id, 'onRight', val)}
-                            placeholder={`Right Column (${j.alias})`}
-                          />
-                        </div>
-                      )}
-                    </>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <SearchableDropdown options={visibleData[j.targetSchema] ? Object.keys(visibleData[j.targetSchema]).filter(Boolean) : []} value={j.targetTable} onChange={val => handleClauseChange('joins', j.id, 'targetTable', val)} placeholder="Target Table" theme={theme} />
+                        {j.targetTable && (
+                            <div className="grid grid-cols-2 gap-2">
+                                <SearchableDropdown options={visibleData[query.schema]?.[query.table] || []} value={j.onLeft} onChange={val => handleClauseChange('joins', j.id, 'onLeft', val)} placeholder="Left Column" theme={theme} />
+                                <SearchableDropdown options={visibleData[j.targetSchema]?.[j.targetTable] || []} value={j.onRight} onChange={val => handleClauseChange('joins', j.id, 'onRight', val)} placeholder="Right Column" theme={theme} />
+                            </div>
+                        )}
+                    </div>
                   )}
-                </div>
+                </GlassCard>
               ))}
 
-              {/* Function clauses */}
-              {(query.functions || []).map((f, index) => {
-                const funcInfo = ALL_FUNCTIONS.find(info => info.name === f.func);
-                const handleArgChange = (i, val) => {
-                  const newArgs = [...f.args];
-                  newArgs[i] = val;
-                  handleClauseChange('functions', f.id, 'args', newArgs);
-                };
-
-                return (
-                  <div key={f.id} className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100 border border-gray-400'} p-2 rounded-lg space-y-2`}>
+              {(query.functions || []).map(f => (
+                <GlassCard key={f.id} theme={theme} className="p-4 space-y-4 border-purple-500/20">
                     <div className="flex justify-between items-center">
-                      <span className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'} flex items-center`}>
-                        FUNCTION <InfoTooltip text={funcInfo?.description || ''} />
-                      </span>
-                      <button 
-                        onClick={() => removeClause('functions', f.id)} 
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        <TrashIcon/>
-                      </button>
+                        <span className="text-xs font-bold text-purple-400 flex items-center gap-2 uppercase tracking-widest">FUNCTION</span>
+                        <button onClick={() => removeClause('functions', f.id)} className="text-red-400 hover:text-red-300 transition-colors"><TrashIcon/></button>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <select 
-                        value={f.func} 
-                        onChange={e => handleClauseChange('functions', f.id, 'func', e.target.value)} 
-                        className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
-                      >
-                        {availableFunctions.map(fn => <option key={fn.name}>{fn.name}</option>)}
-                        <option value="CONCAT">🔗 CONCATENATE</option>
-                      </select>
-                      <input 
-                        type="text" 
-                        value={f.alias} 
-                        placeholder="Alias (optional)" 
-                        onChange={e => handleClauseChange('functions', f.id, 'alias', e.target.value)} 
-                        className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                        <select 
+                            value={f.func} 
+                            onChange={e => handleClauseChange('functions', f.id, 'func', e.target.value)} 
+                            className={`w-full p-2.5 rounded-xl border backdrop-blur-md text-sm focus:outline-none ${
+                                theme === 'dark' ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-black/10 text-slate-900'
+                            }`}
+                        >
+                            {availableFunctions.map(fn => <option key={fn.name}>{fn.name}</option>)}
+                            <option value="CONCAT">🔗 CONCATENATE</option>
+                        </select>
+                        <GlassInput theme={theme} value={f.alias} onChange={e => handleClauseChange('functions', f.id, 'alias', e.target.value)} placeholder="Alias (optional)" />
                     </div>
-                    {funcInfo && !funcInfo.special && funcInfo.args > 0 && (
-                      <div className="grid grid-cols-2 gap-2">
-                        {Array.from({ length: funcInfo.args }).map((_, i) => (
-                          <input 
-                            key={i}
-                            type="text" 
-                            value={f.args[i]} 
-                            placeholder={`Argument ${i+1}`} 
-                            onChange={e => handleArgChange(i, e.target.value)} 
-                            className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
-                          />
-                        ))}
-                      </div>
-                    )}
-                    {funcInfo?.name === 'CASE' && (
-                      <CaseStatementBuilder
-                        theme={theme}
-                        caseData={f.caseStatement || { conditions: [{ when: '', then: '' }], else: '' }}
-                        onChange={(caseConfig) => {
-                          const updatedFunc = { ...f, caseStatement: caseConfig };
-                          // Directly update the function clause in the main query state
-                          handleClauseChange('functions', f.id, 'caseStatement', caseConfig);
-                        }}
-                      />
+                    {f.func === 'CASE' && (
+                        <CaseStatementBuilder theme={theme} caseData={f.caseStatement || { conditions: [{ when: '', then: '' }], else: '' }} onChange={config => handleClauseChange('functions', f.id, 'caseStatement', config)} />
                     )}
                     {f.func === 'CONCAT' && (
-                      <StringConcatBuilder
-                        theme={theme}
-                        concatData={f.concatStatement || { parts: [{ id: Date.now(), type: 'column', value: '' }] }}
-                        onChange={(concatConfig) => {
-                          handleClauseChange('functions', f.id, 'concatStatement', concatConfig);
-                        }}
-                        availableColumns={visibleData[query.schema]?.[query.table] || []}
-                      />
+                        <StringConcatBuilder theme={theme} concatData={f.concatStatement || { parts: [{ id: Date.now(), type: 'column', value: '' }] }} onChange={config => handleClauseChange('functions', f.id, 'concatStatement', config)} availableColumns={visibleData[query.schema]?.[query.table] || []} />
                     )}
-                  </div>
-                );
-              })}
-
-              {/* WHERE clauses */}
-              {(query.wheres || []).map(w => (
-                <React.Fragment key={w.id}>
-                {/* Only show DropZone at the top or if list is empty? No, maybe just one at top of section */}
-                </React.Fragment>
+                </GlassCard>
               ))}
-              
+
               <WhereDropZone conditions={(query.wheres || [])} onAddCondition={(cond) => addSpecificClause('wheres', { ...cond, tableAlias: 't1' })} />
-
+              
               {(query.wheres || []).map(w => (
-                <div key={w.id} className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100 border border-gray-400'} p-2 rounded-lg space-y-2`}>
-                  <div className="flex justify-between items-center">
-                    <span className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'} flex items-center`}>
-                      WHERE <InfoTooltip text="Filter rows based on conditions" />
-                    </span>
-                    <button 
-                      onClick={() => removeClause('wheres', w.id)} 
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <TrashIcon/>
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
-                    <SearchableDropdown
-                      options={query.schema && query.table && visibleData[query.schema]?.[query.table] ? visibleData[query.schema][query.table].filter(Boolean) : []}
-                      value={w.column}
-                      onChange={val => handleClauseChange('wheres', w.id, 'column', val)}
-                      placeholder="Select Column"
-                    />
-                    <div className="grid grid-cols-2 gap-1">
-                      <select 
-                        value={w.operator} 
-                        onChange={e => handleClauseChange('wheres', w.id, 'operator', e.target.value)} 
-                        className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
-                      >
-                        <option>=</option>
-                        <option>!=</option>
-                        <option>&gt;</option>
-                        <option>&lt;</option>
-                        <option>&gt;=</option>
-                        <option>&lt;=</option>
-                        <option>LIKE</option>
-                        <option>IN</option>
-                      </select>
-                      <div className="flex-1 flex flex-col">
-                          <input
-                              type="text"
-                              value={w.value}
-                              onChange={e => handleClauseChange('wheres', w.id, 'value', e.target.value)}
-                              placeholder="Value or multiple: val1, val2, val3"
-                              className={`p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg`}
-                          />
-                          {(w.value.includes(',') || w.value.includes(';') || w.value.includes('\n') || /\s+/.test(w.value)) && (
-                              <span className="text-xs text-green-400 mt-1">
-                                  ✓ Multiple values detected - will use IN clause
-                              </span>
-                          )}
-                      </div>
+                <GlassCard key={w.id} theme={theme} className="p-4 space-y-4 border-orange-500/20">
+                    <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-orange-400 uppercase tracking-widest">WHERE</span>
+                        <button onClick={() => removeClause('wheres', w.id)} className="text-red-400 hover:text-red-300 transition-colors"><TrashIcon/></button>
                     </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* GROUP BY clauses */}
-              <GroupByDropZone groupBy={(query.groupBys || []).map(g => g.column)} onAddGroupBy={(col) => addSpecificClause('groupBys', { tableAlias: 't1', column: col.split('.').pop() })} onRemoveGroupBy={() => {}} />
-
-              {(query.groupBys || []).map(g => (
-                <div key={g.id} className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100 border border-gray-400'} p-2 rounded-lg space-y-2`}>
-                  <div className="flex justify-between items-center">
-                    <span className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'} flex items-center`}>
-                      GROUP BY <InfoTooltip text="Group rows that have the same values" />
-                    </span>
-                    <button 
-                      onClick={() => removeClause('groupBys', g.id)} 
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <TrashIcon/>
-                    </button>
-                  </div>
-                  <SearchableDropdown
-                    options={query.schema && query.table && visibleData[query.schema]?.[query.table] ? visibleData[query.schema][query.table].filter(Boolean) : []}
-                    value={g.column}
-                    onChange={val => handleClauseChange('groupBys', g.id, 'column', val)}
-                    placeholder="Select Column"
-                  />
-                </div>
-              ))}
-
-              {/* HAVING clauses */}
-              {(query.havings || []).map(h => (
-                <div key={h.id} className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100 border border-gray-400'} p-2 rounded-lg space-y-2`}>
-                  <div className="flex justify-between items-center">
-                    <span className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'} flex items-center`}>
-                      HAVING <InfoTooltip text="Filter groups based on aggregate conditions" />
-                    </span>
-                    <button 
-                      onClick={() => removeClause('havings', h.id)} 
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <TrashIcon/>
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
-                    <input 
-                      type="text" 
-                      value={h.column} 
-                      placeholder="Aggregate Function (e.g., COUNT(*))" 
-                      onChange={e => handleClauseChange('havings', h.id, 'column', e.target.value)} 
-                      className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
-                    />
-                    <div className="grid grid-cols-2 gap-1">
-                      <select 
-                        value={h.operator} 
-                        onChange={e => handleClauseChange('havings', h.id, 'operator', e.target.value)} 
-                        className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
-                      >
-                        <option>=</option>
-                        <option>!=</option>
-                        <option>&gt;</option>
-                        <option>&lt;</option>
-                        <option>&gt;=</option>
-                        <option>&lt;=</option>
-                      </select>
-                      <div className="flex-1 flex flex-col">
-                        <input
-                          type="text"
-                          value={h.value}
-                          onChange={e => handleClauseChange('havings', h.id, 'value', e.target.value)}
-                          placeholder="Value or multiple: val1, val2"
-                          className={`p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg`}
-                        />
-                        {(h.value.includes(',') || h.value.includes(';') || h.value.includes('\n')) && (
-                            <span className="text-xs text-green-400 mt-1">
-                                ✓ Multiple values detected - will use IN clause
-                            </span>
-                        )}
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <SearchableDropdown options={visibleData[query.schema]?.[query.table] || []} value={w.column} onChange={val => handleClauseChange('wheres', w.id, 'column', val)} placeholder="Column" theme={theme} />
+                        <div className="flex gap-2">
+                            <select value={w.operator} onChange={e => handleClauseChange('wheres', w.id, 'operator', e.target.value)} className={`p-2.5 rounded-xl border backdrop-blur-md text-sm focus:outline-none ${theme === 'dark' ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-black/10 text-slate-900'}`}><option>=</option><option>!=</option><option>&gt;</option><option>&lt;</option><option>&gt;=</option><option>&lt;=</option><option>LIKE</option><option>IN</option></select>
+                            <GlassInput theme={theme} value={w.value} onChange={e => handleClauseChange('wheres', w.id, 'value', e.target.value)} placeholder="Value..." className="flex-1" />
+                        </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* ORDER BY clauses */}
-              {(query.orderBys || []).map(o => (
-                <div key={o.id} className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100 border border-gray-400'} p-2 rounded-lg space-y-2`}>
-                  <div className="flex justify-between items-center">
-                    <span className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'} flex items-center`}>
-                      ORDER BY <InfoTooltip text="Sort the result set" />
-                    </span>
-                    <button 
-                      onClick={() => removeClause('orderBys', o.id)} 
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <TrashIcon/>
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <SearchableDropdown
-                      options={query.schema && query.table && visibleData[query.schema]?.[query.table] ? visibleData[query.schema][query.table].filter(Boolean) : []}
-                      value={o.column}
-                      onChange={val => handleClauseChange('orderBys', o.id, 'column', val)}
-                      placeholder="Select Column"
-                    />
-                    <select 
-                      value={o.direction} 
-                      onChange={e => handleClauseChange('orderBys', o.id, 'direction', e.target.value)} 
-                      className={`w-full p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
-                    >
-                      <option>ASC</option>
-                      <option>DESC</option>
-                    </select>
-                  </div>
-                </div>
+                </GlassCard>
               ))}
             </div>
           </div>
 
-          <div className={`border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-400'} pt-4`}>
-            <h3 className="text-sm font-semibold mb-2">5. LIMIT</h3>
-            <input 
-              type="text" 
+          <div className="border-t border-white/5 pt-6">
+            <h3 className="text-xs font-bold opacity-60 mb-3 uppercase tracking-wider">5. LIMIT</h3>
+            <GlassInput 
+              theme={theme}
               value={query.limit} 
               placeholder="e.g., 100" 
               onChange={e => handleQueryChange('limit', e.target.value)} 
-              className={`w-full md:w-1/3 p-2 ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 border border-gray-400'} text-sm rounded-lg focus:outline-none`}
+              className="max-w-[200px]"
             />
           </div>
         </>
@@ -868,23 +499,21 @@ const QueryBuilder = ({
         isOpen={showFunctionBrowser}
         onClose={() => setShowFunctionBrowser(false)}
         onInsertFunction={(functionName) => {
-          // Add function to functions array
           const funcInfo = availableFunctions.find(f => f.name === functionName);
           addSpecificClause('functions', {
             func: functionName,
             args: Array(funcInfo?.args || 0).fill(''),
             alias: '',
-            caseStatement: functionName === 'CASE' 
-              ? { conditions: [{ when: '', then: '' }], else: '' }
-              : undefined
+            caseStatement: functionName === 'CASE' ? { conditions: [{ when: '', then: '' }], else: '' } : undefined
           });
           setShowFunctionBrowser(false);
         }}
-        userLevel={userData?.isAdmin ? 'Advanced' : (userData?.permissions?.level || 'Beginner')}
+        userLevel={userLevel}
         theme={theme}
       />
-    </div>
+    </GlassCard>
   );
 };
 
 export default React.memo(QueryBuilder);
+
